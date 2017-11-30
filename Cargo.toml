@@ -1,0 +1,6 @@
+[package]
+name = "almanac"
+version = "0.1.0"
+authors = ["meskio <meskio@sindominio.net>"]
+
+[dependencies]
