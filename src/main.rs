@@ -4,6 +4,7 @@ extern crate chrono_tz;
 
 use std::env;
 mod ics;
+mod event;
 
 fn main() {
     let args: Vec<_> = env::args().collect();
