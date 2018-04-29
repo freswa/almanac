@@ -3,10 +3,10 @@ use std::fmt;
 use std::str::FromStr;
 
 use chrono;
-use chrono::prelude::{DateTime, TimeZone};
+use chrono::TimeZone;
 use chrono_tz::{Tz, UTC};
 
-use ics::IcsError;
+use errors::EventError;
 
 
 #[derive(Debug)]
@@ -21,7 +21,7 @@ pub struct Event {
 
 #[derive(Debug)]
 pub enum Date {
-    Time(DateTime<Tz>),
+    Time(chrono::DateTime<Tz>),
     AllDay(chrono::Date<Tz>),
 }
 
@@ -77,7 +77,7 @@ impl Date {
         }
     }
 
-    pub fn parse(date: String, time_zone: String) -> Result<Self, IcsError> {
+    pub fn parse(date: &String, time_zone: &String) -> Result<Self, EventError> {
         let tz: Tz = time_zone.parse().unwrap_or(UTC);
         let date = match date.find("T") {
             Some(_) => {
@@ -102,19 +102,19 @@ impl Date {
 }
 
 impl FromStr for Status {
-    type Err = IcsError;
+    type Err = EventError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "CONFIRMED" => Ok(Status::Confirmed),
             "TENTATIVE" => Ok(Status::Tentative),
             "CANCELED" => Ok(Status::Canceled),
-            _ => Err(IcsError::StatusError),
+            _ => Err(EventError::StatusError),
         }
     }
 }
 
-fn cmp_date_time<T: TimeZone>(date: &chrono::Date<T>, time: &DateTime<T>) -> Ordering {
+fn cmp_date_time<T: TimeZone>(date: &chrono::Date<T>, time: &chrono::DateTime<T>) -> Ordering {
     let d2 = time.date();
     if date.eq(&d2) {
         return Ordering::Less;
