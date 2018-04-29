@@ -21,12 +21,20 @@ pub enum Date {
 }
 
 #[derive(Debug)]
+pub enum Status {
+    Confirmed,
+    Tentative,
+    Canceled,
+}
+
+#[derive(Debug)]
 pub struct Event {
     pub start: Date,
     pub end: Date,
     pub summary: String,
     pub location: String,
     pub description: String,
+    pub status: Status,
 }
 
 pub fn parse<P: AsRef<Path>>(ics: P) -> Result<Vec<Event>, IcsError> {
@@ -51,6 +59,7 @@ pub fn parse<P: AsRef<Path>>(ics: P) -> Result<Vec<Event>, IcsError> {
                     "SUMMARY" => event.summary = value,
                     "LOCATION" => event.location = value,
                     "DESCRIPTION" => event.description = value,
+                    "STATUS" => event.status = Status::from_str(&value)?,
                     "DTSTART" => event.start = parse_date(value, time_zone)?,
                     "DTEND" => event.end = parse_date(value, time_zone)?,
                     _ => (),
@@ -93,6 +102,7 @@ impl Event {
             summary: "".to_string(),
             location: "".to_string(),
             description: "".to_string(),
+            status: Status::Confirmed,
             start: Date::Time(UTC.timestamp(0, 0)),
             end: Date::Time(UTC.timestamp(0, 0)),
         };
@@ -131,6 +141,19 @@ impl Date {
     }
 }
 
+impl FromStr for Status {
+    type Err = IcsError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "CONFIRMED" => Ok(Status::Confirmed),
+            "TENTATIVE" => Ok(Status::Tentative),
+            "CANCELED" => Ok(Status::Canceled),
+            _ => Err(IcsError::StatusError),
+        }
+    }
+}
+
 fn cmp_date_time<T: TimeZone>(date: &chrono::Date<T>, time: &DateTime<T>) -> Ordering {
     let d2 = time.date();
     if date.eq(&d2) {
@@ -144,6 +167,7 @@ pub enum IcsError {
     IoError(io::Error),
     IcalError(parser::errors::Error),
     IntError(ParseIntError),
+    StatusError,
 }
 
 impl From<io::Error> for IcsError {
