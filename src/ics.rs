@@ -5,6 +5,7 @@ use std::path::Path;
 use std::str::FromStr;
 use std::num::ParseIntError;
 use std::fmt;
+use std::cmp::Ordering;
 
 use ical::parser;
 use ical::IcalParser;
@@ -59,6 +60,7 @@ pub fn parse<P: AsRef<Path>>(ics: P) -> Result<Vec<Event>, IcsError> {
         }
     }
 
+    events.sort_by(|a, b| a.start.cmp(&b.start));
     Ok(events)
 }
 
@@ -108,6 +110,33 @@ impl fmt::Display for Event {
         }
         Ok(())
     }
+}
+
+impl Date {
+    fn cmp(&self, other: &Date) -> Ordering {
+        match *self {
+            Date::Time(t1) => {
+                match *other {
+                    Date::Time(t2) => t1.cmp(&t2),
+                    Date::AllDay(d) => cmp_date_time(&d, &t1).reverse(),
+                }
+            }
+            Date::AllDay(d1) => {
+                match *other {
+                    Date::Time(t) => cmp_date_time(&d1, &t),
+                    Date::AllDay(d2) => d1.cmp(&d2),
+                }
+            }
+        }
+    }
+}
+
+fn cmp_date_time<T: TimeZone>(date: &chrono::Date<T>, time: &DateTime<T>) -> Ordering {
+    let d2 = time.date();
+    if date.eq(&d2) {
+        return Ordering::Less;
+    }
+    date.cmp(&d2)
 }
 
 #[derive(Debug)]
