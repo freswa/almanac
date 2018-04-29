@@ -4,3 +4,10 @@ version = "0.1.0"
 authors = ["meskio <meskio@sindominio.net>"]
 
 [dependencies]
+chrono = "0.4"
+chrono-tz = "0.4"
+
+[dependencies.ical]
+version = "0.4.*"
+default-features = false
+features = ["ical"]
