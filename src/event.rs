@@ -121,3 +121,22 @@ fn cmp_date_time<T: TimeZone>(date: &chrono::Date<T>, time: &chrono::DateTime<T>
     }
     date.cmp(&d2)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::Date;
+    use chrono::Datelike;
+    use chrono::Timelike;
+
+    #[test]
+    fn date_parse_time() {
+        match Date::parse(&String::from("19361020T120000"), &String::new()).unwrap() {
+            Date::Time(time) => {
+                assert_eq!(time.year(), 1936);
+                assert_eq!(time.hour(), 12);
+                assert_eq!(time.day(), 20);
+            }
+            _ => assert!(true),
+        }
+    }
+}
