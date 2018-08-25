@@ -3,6 +3,7 @@ extern crate chrono;
 extern crate chrono_tz;
 
 mod event;
+mod periodic;
 mod events;
 mod errors;
 

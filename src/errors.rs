@@ -6,6 +6,7 @@ pub enum EventError {
     IcalError(parser::errors::Error),
     IntError(ParseIntError),
     StatusError,
+    FreqError,
 }
 
 impl From<parser::errors::Error> for EventError {
