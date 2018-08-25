@@ -40,8 +40,8 @@ impl Event {
             location: "".to_string(),
             description: "".to_string(),
             status: Status::Confirmed,
-            start: Date::Time(UTC.timestamp(0, 0)),
-            end: Date::Time(UTC.timestamp(0, 0)),
+            start: Date::empty(),
+            end: Date::empty(),
         };
     }
 }
@@ -60,6 +60,10 @@ impl fmt::Display for Event {
 }
 
 impl Date {
+    pub fn empty() -> Date {
+        Date::Time(UTC.timestamp(0, 0))
+    }
+
     pub fn cmp(&self, other: &Self) -> Ordering {
         match *self {
             Date::Time(t1) => {
