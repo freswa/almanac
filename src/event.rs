@@ -1,4 +1,4 @@
-use std::cmp::Ordering;
+use std::cmp::{Ordering, Ord, PartialEq, PartialOrd};
 use std::fmt;
 use std::str::FromStr;
 
@@ -9,7 +9,7 @@ use chrono_tz::{Tz, UTC};
 use errors::EventError;
 
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Event {
     pub start: Date,
     pub end: Date,
@@ -19,13 +19,13 @@ pub struct Event {
     pub status: Status,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone, Eq)]
 pub enum Date {
     Time(chrono::DateTime<Tz>),
     AllDay(chrono::Date<Tz>),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub enum Status {
     Confirmed,
     Tentative,
@@ -64,23 +64,6 @@ impl Date {
         Date::Time(UTC.timestamp(0, 0))
     }
 
-    pub fn cmp(&self, other: &Self) -> Ordering {
-        match *self {
-            Date::Time(t1) => {
-                match *other {
-                    Date::Time(t2) => t1.cmp(&t2),
-                    Date::AllDay(d) => cmp_date_time(&d, &t1).reverse(),
-                }
-            }
-            Date::AllDay(d1) => {
-                match *other {
-                    Date::Time(t) => cmp_date_time(&d1, &t),
-                    Date::AllDay(d2) => d1.cmp(&d2),
-                }
-            }
-        }
-    }
-
     pub fn parse(date: &String, time_zone: &String) -> Result<Self, EventError> {
         let absolute_time = date.chars().rev().next().unwrap() == 'Z';
         let tz: Tz = if absolute_time {
@@ -111,6 +94,37 @@ impl Date {
             }
         };
         Ok(date)
+    }
+}
+
+impl Ord for Date {
+    fn cmp(&self, other: &Self) -> Ordering {
+        match *self {
+            Date::Time(t1) => {
+                match *other {
+                    Date::Time(t2) => t1.cmp(&t2),
+                    Date::AllDay(d) => cmp_date_time(&d, &t1).reverse(),
+                }
+            }
+            Date::AllDay(d1) => {
+                match *other {
+                    Date::Time(t) => cmp_date_time(&d1, &t),
+                    Date::AllDay(d2) => d1.cmp(&d2),
+                }
+            }
+        }
+    }
+}
+
+impl PartialOrd for Date {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl PartialEq for Date {
+    fn eq(&self, other: &Self) -> bool {
+        self.cmp(other) == Ordering::Equal
     }
 }
 
