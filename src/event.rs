@@ -82,14 +82,23 @@ impl Date {
     }
 
     pub fn parse(date: &String, time_zone: &String) -> Result<Self, EventError> {
-        let tz: Tz = time_zone.parse().unwrap_or(UTC);
+        let absolute_time = date.chars().rev().next().unwrap() == 'Z';
+        let tz: Tz = if absolute_time {
+            UTC
+        } else {
+            // FIXME: this should not be UTC but local timezone
+            time_zone.parse().unwrap_or(UTC)
+        };
+
         let date = match date.find("T") {
             Some(_) => {
-                let time = tz.datetime_from_str(&date, "%Y%m%dT%H%M%S").unwrap_or(
-                    UTC.timestamp(
-                        0,
-                        0,
-                    ),
+                let date_pattern = if absolute_time {
+                    "%Y%m%dT%H%M%SZ"
+                } else {
+                    "%Y%m%dT%H%M%S"
+                };
+                let time = tz.datetime_from_str(&date, date_pattern).unwrap_or(
+                    UTC.timestamp(0, 0),
                 );
                 Date::Time(time)
             }
