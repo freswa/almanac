@@ -8,7 +8,8 @@ use errors::EventError;
 pub struct Periodic {
     pub event: Event,
     pub freq: Freq,
-    // TODO: until, count, interval, ...
+    pub interval: i64,
+    // TODO: until, count, ...
 }
 
 #[derive(Debug)]
@@ -27,12 +28,14 @@ impl Periodic {
         Self {
             event: Event::new(),
             freq: Freq::Secondly,
+            interval: 1,
         }
     }
 
     pub fn set_param(&mut self, param: &str, value: &str) -> Result<(), EventError> {
         match param {
             "FREQ" => self.freq = value.parse()?,
+            "INTERVAL" => self.interval = value.parse()?,
             _ => (),
         }
         Ok(())
@@ -41,7 +44,11 @@ impl Periodic {
 
 impl fmt::Display for Periodic {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?}: {}", self.freq, self.event)?;
+        write!(f, "{:?}", self.freq)?;
+        if self.interval != 1 {
+            write!(f, "({})", self.interval)?;
+        }
+        write!(f, ": {}", self.event)?;
         Ok(())
     }
 }

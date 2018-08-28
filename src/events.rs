@@ -75,8 +75,10 @@ impl fmt::Display for Events {
 fn rrule(value: &String, params: &Vec<(String, Vec<String>)>) -> Result<Periodic, EventError> {
     let mut periodic = Periodic::new();
 
-    let p: Vec<&str> = value.splitn(2, "=").collect();
-    periodic.set_param(p[0], p[1])?;
+    for entry in value.split(";") {
+        let p: Vec<&str> = entry.splitn(2, "=").collect();
+        periodic.set_param(p[0], p[1])?;
+    }
 
     for (param, values) in params {
         let mut value = "";
