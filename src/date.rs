@@ -17,17 +17,13 @@ pub enum Date {
 
 
 impl Date {
-    pub fn empty() -> Date {
+    pub fn new() -> Date {
         Date::Time(UTC.timestamp(0, 0))
     }
 
 
     pub fn now() -> Date {
         Date::Time(UTC.from_utc_datetime(&Utc::now().naive_utc()))
-    }
-
-    pub fn is_empty(&self) -> bool {
-        *self == Date::empty()
     }
 
     pub fn parse(date_str: &str, time_zone: &str) -> Result<Self, EventError> {

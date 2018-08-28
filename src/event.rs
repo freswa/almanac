@@ -38,8 +38,8 @@ impl Event {
             location: "".to_string(),
             description: "".to_string(),
             status: Status::Confirmed,
-            start: Date::empty(),
-            end: End::Date(Date::empty()),
+            start: Date::new(),
+            end: End::Date(Date::new()),
         };
     }
 
