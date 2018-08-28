@@ -1,9 +1,11 @@
 use std::cmp::{Ordering, Ord, PartialEq, PartialOrd};
+use std::ops::Add;
 
 use errors::EventError;
 
 use chrono;
-use chrono::TimeZone;
+use chrono::{TimeZone, Duration};
+use chrono::offset::Utc;
 use chrono_tz::{Tz, UTC};
 
 
@@ -17,6 +19,15 @@ pub enum Date {
 impl Date {
     pub fn empty() -> Date {
         Date::Time(UTC.timestamp(0, 0))
+    }
+
+
+    pub fn now() -> Date {
+        Date::Time(UTC.from_utc_datetime(&Utc::now().naive_utc()))
+    }
+
+    pub fn is_empty(&self) -> bool {
+        *self == Date::empty()
     }
 
     pub fn parse(date_str: &str, time_zone: &str) -> Result<Self, EventError> {
@@ -83,6 +94,17 @@ impl PartialOrd for Date {
 impl PartialEq for Date {
     fn eq(&self, other: &Self) -> bool {
         self.cmp(other) == Ordering::Equal
+    }
+}
+
+impl Add<Duration> for Date {
+    type Output = Date;
+
+    fn add(self, other: Duration) -> Date {
+        match self {
+            Date::Time(d) => Date::Time(d + other),
+            Date::AllDay(d) => Date::AllDay(d + other),
+        }
     }
 }
 
