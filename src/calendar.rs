@@ -4,6 +4,7 @@ use ical::IcalParser;
 use chrono::Duration;
 
 use date::Date;
+use event;
 use event::{Event, End};
 use periodic::Periodic;
 use errors::EventError;
@@ -62,8 +63,7 @@ impl Calendar {
     }
 
     pub fn get(&self, first: &Date, last: &Date) -> Vec<Event> {
-        // TODO: not all single, just the one by date
-        let mut events = self.single.clone();
+        let mut events = event::get(&self.single, first, last).to_vec();
         for p in &self.periodic {
             events.append(&mut p.get(first, last));
         }

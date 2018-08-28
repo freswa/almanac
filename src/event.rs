@@ -82,3 +82,17 @@ impl FromStr for Status {
         }
     }
 }
+
+
+pub fn get<'a>(events: &'a Vec<Event>, first: &Date, last: &Date) -> &'a [Event] {
+    match events.iter().position(|ref e| e.start >= *first) {
+        None => &[],
+        Some(i) => {
+            let j = events
+                .iter()
+                .position(|ref e| e.end_date() > *last)
+                .unwrap_or(events.len());
+            &events[i..j]
+        }
+    }
+}
