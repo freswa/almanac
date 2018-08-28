@@ -1,6 +1,8 @@
 use std::fmt;
 use std::str::FromStr;
 
+use chrono::Duration;
+
 use date::Date;
 use errors::EventError;
 
@@ -8,7 +10,7 @@ use errors::EventError;
 #[derive(Debug, Clone)]
 pub struct Event {
     pub start: Date,
-    pub end: Date,
+    pub end: End,
     pub summary: String,
     pub location: String,
     pub description: String,
@@ -22,6 +24,12 @@ pub enum Status {
     Canceled,
 }
 
+#[derive(Debug, Copy, Clone)]
+pub enum End {
+    Date(Date),
+    Duration(Duration),
+}
+
 
 impl Event {
     pub fn new() -> Event {
@@ -31,14 +39,27 @@ impl Event {
             description: "".to_string(),
             status: Status::Confirmed,
             start: Date::empty(),
-            end: Date::empty(),
+            end: End::Date(Date::empty()),
         };
+    }
+
+    pub fn end_date(&self) -> Date {
+        match self.end {
+            End::Date(date) => date,
+            End::Duration(duration) => self.start + duration,
+        }
     }
 }
 
 impl fmt::Display for Event {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?}: {}", self.start, self.summary)?;
+        write!(
+            f,
+            "{:?}-{:?}: {}",
+            self.start,
+            self.end_date(),
+            self.summary
+        )?;
         if !self.location.is_empty() {
             write!(f, " ({})", self.location)?;
         }

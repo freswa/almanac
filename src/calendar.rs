@@ -1,18 +1,19 @@
 use std::io::BufRead;
 use std::fmt;
 use ical::IcalParser;
+use chrono::Duration;
 
 use date::Date;
-use event::Event;
+use event::{Event, End};
 use periodic::Periodic;
 use errors::EventError;
 
-pub struct Events {
+pub struct Calendar {
     single: Vec<Event>,
     periodic: Vec<Periodic>,
 }
 
-impl Events {
+impl Calendar {
     pub fn parse<B: BufRead>(buf: B) -> Result<Self, EventError> {
         let reader = IcalParser::new(buf);
         let mut single = Vec::new();
@@ -40,7 +41,8 @@ impl Events {
                         "DESCRIPTION" => event.description = value,
                         "STATUS" => event.status = value.parse()?,
                         "DTSTART" => event.start = Date::parse(&value, &time_zone)?,
-                        "DTEND" => event.end = Date::parse(&value, &time_zone)?,
+                        "DTEND" => event.end = End::Date(Date::parse(&value, &time_zone)?),
+                        "DURATION" => event.end = End::Duration(duration(&value)?),
                         "RRULE" => maybe_periodic = Some(rrule(&value, &params)?),
                         _ => (),
                     };
@@ -55,12 +57,22 @@ impl Events {
             }
         }
 
-        single.sort_by(|a, b| a.start.cmp(&b.start));
-        Ok(Events { single, periodic })
+        single.sort_by_key(|k| k.start);
+        Ok(Calendar { single, periodic })
+    }
+
+    pub fn get(&self, first: &Date, last: &Date) -> Vec<Event> {
+        // TODO: not all single, just the one by date
+        let mut events = self.single.clone();
+        for p in &self.periodic {
+            events.append(&mut p.get(first, last));
+        }
+        events.sort_by_key(|k| k.start);
+        events
     }
 }
 
-impl fmt::Display for Events {
+impl fmt::Display for Calendar {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         for event in &self.single {
             writeln!(f, "{}", event)?;
@@ -73,7 +85,7 @@ impl fmt::Display for Events {
     }
 }
 
-fn rrule(value: &String, params: &Vec<(String, Vec<String>)>) -> Result<Periodic, EventError> {
+fn rrule(value: &str, params: &Vec<(String, Vec<String>)>) -> Result<Periodic, EventError> {
     let mut periodic = Periodic::new();
 
     for entry in value.split(";") {
@@ -90,4 +102,30 @@ fn rrule(value: &String, params: &Vec<(String, Vec<String>)>) -> Result<Periodic
     }
 
     Ok(periodic)
+}
+
+fn duration(value: &str) -> Result<Duration, EventError> {
+    let mut duration = Duration::seconds(0);
+    let mut acc = "".to_string();
+    for c in value.chars() {
+        match c {
+            '0'...'9' => acc.push(c),
+            '-' => duration = -duration,
+            'W' | 'H' | 'M' | 'S' | 'D' => {
+                let count = acc.parse()?;
+                acc = "".to_string();
+                let d = match c {
+                    'W' => Duration::weeks(count),
+                    'H' => Duration::hours(count),
+                    'M' => Duration::minutes(count),
+                    'S' => Duration::seconds(count),
+                    'D' => Duration::days(count),
+                    _ => Duration::seconds(0),
+                };
+                duration = duration + d;
+            }
+            _ => (),
+        }
+    }
+    Ok(Duration::weeks(1))
 }

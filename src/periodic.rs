@@ -1,7 +1,10 @@
 use std::fmt;
 use std::str::FromStr;
 
-use event::Event;
+use chrono::Duration;
+
+use date::Date;
+use event::{Event, End};
 use errors::EventError;
 
 #[derive(Debug)]
@@ -9,7 +12,8 @@ pub struct Periodic {
     pub event: Event,
     pub freq: Freq,
     pub interval: i64,
-    // TODO: until, count, ...
+    pub until: Date,
+    // TODO: count, ...
 }
 
 #[derive(Debug)]
@@ -29,6 +33,7 @@ impl Periodic {
             event: Event::new(),
             freq: Freq::Secondly,
             interval: 1,
+            until: Date::empty(),
         }
     }
 
@@ -36,9 +41,31 @@ impl Periodic {
         match param {
             "FREQ" => self.freq = value.parse()?,
             "INTERVAL" => self.interval = value.parse()?,
+            "UNTIL" => self.until = Date::parse(&value, "")?,
             _ => (),
         }
         Ok(())
+    }
+
+    pub fn get(&self, first: &Date, last: &Date) -> Vec<Event> {
+        let mut start = self.event.start;
+        let mut end = self.event.end_date();
+        let mut events = Vec::new();
+        while start <= *last {
+            if !self.until.is_empty() && start <= self.until {
+                break;
+            }
+
+            if start >= *first {
+                let mut e = self.event.clone();
+                e.start = start;
+                e.end = End::Date(end);
+                events.push(e);
+            }
+            start = start + self.freq.duration(self.interval);
+            end = end + self.freq.duration(self.interval);
+        }
+        events
     }
 }
 
@@ -50,6 +77,20 @@ impl fmt::Display for Periodic {
         }
         write!(f, ": {}", self.event)?;
         Ok(())
+    }
+}
+
+impl Freq {
+    pub fn duration(&self, count: i64) -> Duration {
+        match self {
+            Freq::Secondly => Duration::seconds(count),
+            Freq::Minutely => Duration::minutes(count),
+            Freq::Hourly => Duration::hours(count),
+            Freq::Daily => Duration::days(count),
+            Freq::Weekly => Duration::weeks(count),
+            Freq::Monthly => Duration::days(count * 30), // FIXME
+            Freq::Yearly => Duration::days(count * 365), // FIXME
+        }
     }
 }
 
