@@ -68,8 +68,8 @@ impl Periodic {
                 events.push(e);
                 count += count;
             }
-            start = start + self.freq.duration(self.interval);
-            end = end + self.freq.duration(self.interval);
+            start = self.freq.next_date(start, self.interval);
+            end = self.freq.next_date(end, self.interval);
         }
         events
     }
@@ -87,15 +87,23 @@ impl fmt::Display for Periodic {
 }
 
 impl Freq {
-    pub fn duration(&self, count: i64) -> Duration {
+    pub fn next_date(&self, date: Date, count: i64) -> Date {
         match self {
-            Freq::Secondly => Duration::seconds(count),
-            Freq::Minutely => Duration::minutes(count),
-            Freq::Hourly => Duration::hours(count),
-            Freq::Daily => Duration::days(count),
-            Freq::Weekly => Duration::weeks(count),
-            Freq::Monthly => Duration::days(count * 30), // FIXME
-            Freq::Yearly => Duration::days(count * 365), // FIXME
+            Freq::Secondly => date + Duration::seconds(count),
+            Freq::Minutely => date + Duration::minutes(count),
+            Freq::Hourly => date + Duration::hours(count),
+            Freq::Daily => date + Duration::days(count),
+            Freq::Weekly => date + Duration::weeks(count),
+            Freq::Monthly => {
+                let month = date.month();
+                if month == 12 {
+                    let date = date.with_month(1).unwrap();
+                    date.with_year(date.year() + 1).unwrap()
+                } else {
+                    date.with_month(month + 1).unwrap()
+                }
+            }
+            Freq::Yearly => date.with_year(date.year() + 1).unwrap(),
         }
     }
 }

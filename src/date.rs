@@ -4,7 +4,7 @@ use std::ops::Add;
 use errors::EventError;
 
 use chrono;
-use chrono::{TimeZone, Duration};
+use chrono::{TimeZone, Duration, Datelike};
 use chrono::offset::Utc;
 use chrono_tz::{Tz, UTC};
 
@@ -63,6 +63,34 @@ impl Date {
             }
         };
         Ok(date)
+    }
+
+    pub fn month(&self) -> u32 {
+        match *self {
+            Date::Time(t) => t.month(),
+            Date::AllDay(d) => d.month(),
+        }
+    }
+
+    pub fn with_month(&self, month: u32) -> Option<Date> {
+        Some(match *self {
+            Date::Time(t) => Date::Time(t.with_month(month)?),
+            Date::AllDay(d) => Date::AllDay(d.with_month(month)?),
+        })
+    }
+
+    pub fn year(&self) -> i32 {
+        match *self {
+            Date::Time(t) => t.year(),
+            Date::AllDay(d) => d.year(),
+        }
+    }
+
+    pub fn with_year(&self, year: i32) -> Option<Date> {
+        Some(match *self {
+            Date::Time(t) => Date::Time(t.with_year(year)?),
+            Date::AllDay(d) => Date::AllDay(d.with_year(year)?),
+        })
     }
 }
 
