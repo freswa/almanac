@@ -12,8 +12,8 @@ pub struct Periodic {
     pub event: Event,
     pub freq: Freq,
     pub interval: i64,
+    pub count: i64,
     pub until: Date,
-    // TODO: count, ...
 }
 
 #[derive(Debug)]
@@ -34,6 +34,7 @@ impl Periodic {
             freq: Freq::Secondly,
             interval: 1,
             until: Date::empty(),
+            count: 0,
         }
     }
 
@@ -41,6 +42,7 @@ impl Periodic {
         match param {
             "FREQ" => self.freq = value.parse()?,
             "INTERVAL" => self.interval = value.parse()?,
+            "COUNT" => self.count = value.parse()?,
             "UNTIL" => self.until = Date::parse(&value, "")?,
             _ => (),
         }
@@ -51,8 +53,11 @@ impl Periodic {
         let mut start = self.event.start;
         let mut end = self.event.end_date();
         let mut events = Vec::new();
+        let mut count = 0;
         while start <= *last {
-            if !self.until.is_empty() && start <= self.until {
+            if (!self.until.is_empty() && start <= self.until) ||
+                (count != 0 && count >= self.count)
+            {
                 break;
             }
 
@@ -61,6 +66,7 @@ impl Periodic {
                 e.start = start;
                 e.end = End::Date(end);
                 events.push(e);
+                count += count;
             }
             start = start + self.freq.duration(self.interval);
             end = end + self.freq.duration(self.interval);

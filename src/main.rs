@@ -25,5 +25,7 @@ fn main() {
 
     let now = Date::now();
     let events = calendar.get(&now, &(now + Duration::weeks(10)));
-    println!("{:?}", events);
+    for e in events {
+        println!("{}", e);
+    }
 }
