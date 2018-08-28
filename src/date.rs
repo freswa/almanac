@@ -1,5 +1,4 @@
 use std::cmp::{Ordering, Ord, PartialEq, PartialOrd};
-use std::str::FromStr;
 
 use errors::EventError;
 
@@ -20,8 +19,8 @@ impl Date {
         Date::Time(UTC.timestamp(0, 0))
     }
 
-    pub fn parse(date: &String, time_zone: &String) -> Result<Self, EventError> {
-        let absolute_time = date.chars().rev().next().unwrap() == 'Z';
+    pub fn parse(date_str: &str, time_zone: &str) -> Result<Self, EventError> {
+        let absolute_time = date_str.chars().rev().next().unwrap() == 'Z';
         let tz: Tz = if absolute_time {
             UTC
         } else {
@@ -29,23 +28,26 @@ impl Date {
             time_zone.parse().unwrap_or(UTC)
         };
 
-        let date = match date.find("T") {
+        let date = match date_str.find("T") {
             Some(_) => {
                 let date_pattern = if absolute_time {
                     "%Y%m%dT%H%M%SZ"
                 } else {
                     "%Y%m%dT%H%M%S"
                 };
-                let time = tz.datetime_from_str(&date, date_pattern).unwrap_or(
-                    UTC.timestamp(0, 0),
+                let time = tz.datetime_from_str(&date_str, date_pattern).unwrap_or(
+                    UTC.timestamp(
+                        0,
+                        0,
+                    ),
                 );
                 Date::Time(time)
             }
             None => {
                 Date::AllDay(tz.ymd(
-                    i32::from_str(&date[0..4])?,
-                    u32::from_str(&date[4..6])?,
-                    u32::from_str(&date[6..8])?,
+                    date_str[0..4].parse()?,
+                    date_str[4..6].parse()?,
+                    date_str[6..8].parse()?,
                 ))
             }
         };
@@ -100,7 +102,7 @@ mod tests {
 
     #[test]
     fn date_parse_time() {
-        match Date::parse(&String::from("19361020T120000"), &String::new()).unwrap() {
+        match Date::parse("19361020T120000", "").unwrap() {
             Date::Time(time) => {
                 assert_eq!(time.year(), 1936);
                 assert_eq!(time.hour(), 12);
