@@ -2,6 +2,7 @@ extern crate ical;
 extern crate chrono;
 extern crate chrono_tz;
 
+mod date;
 mod event;
 mod periodic;
 mod events;

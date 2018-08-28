@@ -2,7 +2,8 @@ use std::io::BufRead;
 use std::fmt;
 use ical::IcalParser;
 
-use event::{Event, Date};
+use date::Date;
+use event::Event;
 use periodic::Periodic;
 use errors::EventError;
 
