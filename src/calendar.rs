@@ -71,7 +71,7 @@ impl Calendar {
                 .collect();
             events.append(&mut p_events);
         }
-        events.sort_by_key(|k| k.start);
+        events.sort();
         events
     }
 }

@@ -1,3 +1,4 @@
+use std::cmp::{Ordering, Ord};
 use std::fmt;
 use std::str::FromStr;
 
@@ -7,7 +8,7 @@ use date::Date;
 use errors::EventError;
 
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Eq)]
 pub struct Event {
     pub start: Date,
     pub end: End,
@@ -17,14 +18,14 @@ pub struct Event {
     pub status: Status,
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, PartialOrd, Eq)]
 pub enum Status {
     Confirmed,
     Tentative,
     Canceled,
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, PartialOrd, Eq)]
 pub enum End {
     Date(Date),
     Duration(Duration),
@@ -67,6 +68,17 @@ impl fmt::Display for Event {
             write!(f, "\n\t{}", self.description)?;
         }
         Ok(())
+    }
+}
+
+impl Ord for Event {
+    fn cmp(&self, other: &Self) -> Ordering {
+        let ord = self.start.cmp(&other.start);
+        if ord == Ordering::Equal {
+            self.end_date().cmp(&other.end_date())
+        } else {
+            ord
+        }
     }
 }
 
