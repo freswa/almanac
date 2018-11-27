@@ -11,3 +11,4 @@ mod errors;
 pub use calendar::Calendar;
 pub use date::Date;
 pub use chrono::Duration;
+pub use event::Event;

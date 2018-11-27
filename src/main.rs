@@ -3,19 +3,30 @@ extern crate almanac;
 use std::env;
 use std::io::BufReader;
 use std::fs::File;
-use almanac::Duration;
-use almanac::Date;
+
 use almanac::Calendar;
+use almanac::Date;
+use almanac::Duration;
+use almanac::Event;
 
 fn main() {
-    let args: Vec<_> = env::args().collect();
-    let file = File::open(&args[1]).unwrap();
+    let first = Date::now();
+    let last = first + Duration::days(7);
+
+    let mut events: Vec<_> = env::args()
+        .skip(1)
+        .map(|arg| ics_calendar(&arg, &first, &last))
+        .flatten()
+        .collect();
+    events.sort();
+    for event in events {
+        println!("{}", event);
+    }
+}
+
+fn ics_calendar(file_path: &str, first: &Date, last: &Date) -> Vec<Event> {
+    let file = File::open(file_path).unwrap();
     let buf = BufReader::new(file);
     let calendar = Calendar::parse(buf).unwrap();
-
-    let now = Date::now();
-    let events = calendar.get(&now, &(now + Duration::days(1)));
-    for e in events {
-        println!("{}", e);
-    }
+    calendar.get(first, last)
 }
