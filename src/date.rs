@@ -1,4 +1,4 @@
-use std::cmp::{Ordering, Ord, PartialEq, PartialOrd};
+use std::cmp::{Ordering, Ord};
 use std::ops::Add;
 
 use errors::EventError;
@@ -9,7 +9,7 @@ use chrono::offset::Utc;
 use chrono_tz::{Tz, UTC};
 
 
-#[derive(Debug, Copy, Clone, Eq)]
+#[derive(Debug, Copy, Clone, PartialEq, PartialOrd, Eq)]
 pub enum Date {
     Time(chrono::DateTime<Tz>),
     AllDay(chrono::Date<Tz>),
@@ -106,18 +106,6 @@ impl Ord for Date {
                 }
             }
         }
-    }
-}
-
-impl PartialOrd for Date {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl PartialEq for Date {
-    fn eq(&self, other: &Self) -> bool {
-        self.cmp(other) == Ordering::Equal
     }
 }
 
