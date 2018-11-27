@@ -65,7 +65,11 @@ impl Calendar {
     pub fn get(&self, first: &Date, last: &Date) -> Vec<Event> {
         let mut events = event::get(&self.single, first, last).to_vec();
         for p in &self.periodic {
-            events.append(&mut p.get(first, last));
+            let mut p_events = p.iter()
+                .skip_while(|e| e.end_date() < *first)
+                .take_while(|e| e.start <= *last)
+                .collect();
+            events.append(&mut p_events);
         }
         events.sort_by_key(|k| k.start);
         events

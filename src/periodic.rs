@@ -49,29 +49,44 @@ impl Periodic {
         Ok(())
     }
 
-    pub fn get(&self, first: &Date, last: &Date) -> Vec<Event> {
-        let mut start = self.event.start;
-        let mut end = self.event.end_date();
-        let mut events = Vec::new();
-        let mut count = 0;
-        while start <= *last {
-            if (self.until.is_some() && start <= self.until.unwrap()) ||
-                (self.count.is_some() && count >= self.count.unwrap())
-            {
-                break;
-            }
-
-            if start >= *first {
-                let mut e = self.event.clone();
-                e.start = start;
-                e.end = End::Date(end);
-                events.push(e);
-                count += count;
-            }
-            start = self.freq.next_date(start, self.interval);
-            end = self.freq.next_date(end, self.interval);
+    pub fn iter<'a>(&'a self) -> Iter<'a> {
+        Iter {
+            periodic: self,
+            start: self.event.start,
+            end: self.event.end_date(),
+            count: 0,
         }
-        events
+    }
+}
+
+pub struct Iter<'a> {
+    periodic: &'a Periodic,
+    start: Date,
+    end: Date,
+    count: i64,
+}
+
+impl<'a> Iterator for Iter<'a> {
+    type Item = Event;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let p = self.periodic;
+
+        if (p.until.is_some() && self.start <= p.until.unwrap()) ||
+            (p.count.is_some() && self.count >= p.count.unwrap())
+        {
+            return None;
+        }
+
+        let mut event = p.event.clone();
+        event.start = self.start;
+        event.end = End::Date(self.end);
+
+        self.count += 1;
+        self.start = p.freq.next_date(self.start, p.interval);
+        self.end = p.freq.next_date(self.end, p.interval);
+
+        Some(event)
     }
 }
 
