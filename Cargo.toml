@@ -2,6 +2,8 @@
 name = "almanac"
 version = "0.1.0"
 authors = ["meskio <meskio@sindominio.net>"]
+license = "GPL-3.0-or-later"
+description = "Display calendar .ics in command line"
 
 [dependencies]
 chrono = "0.4"
