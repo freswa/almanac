@@ -2,9 +2,9 @@ use std::io::BufRead;
 use std::fmt;
 use ical::IcalParser;
 use chrono::Duration;
+use itertools::Itertools;
 
 use date::Date;
-use event;
 use event::{Event, End};
 use periodic::Periodic;
 use errors::EventError;
@@ -62,17 +62,13 @@ impl Calendar {
         Ok(Calendar { single, periodic })
     }
 
-    pub fn get(&self, first: &Date, last: &Date) -> Vec<Event> {
-        let mut events = event::get(&self.single, first, last).to_vec();
-        for p in &self.periodic {
-            let mut p_events = p.iter()
-                .skip_while(|e| e.end_date() < *first)
-                .take_while(|e| e.start <= *last)
-                .collect();
-            events.append(&mut p_events);
-        }
-        events.sort();
-        events
+    pub fn iter<'a>(&'a self) -> impl Iterator<Item = Event> + 'a {
+        self.single.iter().map(Event::clone).merge(
+            self.periodic
+                .iter()
+                .map(|p| p.iter())
+                .kmerge(),
+        )
     }
 }
 

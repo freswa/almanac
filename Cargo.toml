@@ -6,6 +6,7 @@ authors = ["meskio <meskio@sindominio.net>"]
 [dependencies]
 chrono = "0.4"
 chrono-tz = "0.5"
+itertools = "0.7"
 
 [dependencies.ical]
 version = "0.5.*"

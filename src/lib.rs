@@ -1,6 +1,7 @@
 extern crate ical;
 extern crate chrono;
 extern crate chrono_tz;
+extern crate itertools;
 
 mod date;
 mod event;
