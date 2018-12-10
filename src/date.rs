@@ -61,6 +61,24 @@ impl Date {
         Ok(date)
     }
 
+    pub fn format(&self, fmt: &str) -> String {
+        match *self {
+            Date::Time(t) => t.format(fmt).to_string(),
+            Date::AllDay(d) => d.format(fmt).to_string(),
+        }
+    }
+
+    pub fn same_day(&self, other: &Date) -> bool {
+        self.day() == other.day() && self.month() == other.month() && self.year() == self.year()
+    }
+
+    pub fn day(&self) -> u32 {
+        match *self {
+            Date::Time(t) => t.day(),
+            Date::AllDay(d) => d.day(),
+        }
+    }
+
     pub fn month(&self) -> u32 {
         match *self {
             Date::Time(t) => t.month(),
