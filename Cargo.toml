@@ -4,6 +4,11 @@ version = "0.1.0"
 authors = ["meskio <meskio@sindominio.net>"]
 license = "GPL-3.0-or-later"
 description = "Display calendar .ics in command line"
+readme = "README.md"
+homepage = "https://gitlab.com/meskio/almanac"
+repository = "https://gitlab.com/meskio/almanac"
+documentation = "https://docs.rs/almanac/"
+keywords = ["calendar", "ics", "ical", "terminal", "console"]
 
 [dependencies]
 chrono = "0.4"

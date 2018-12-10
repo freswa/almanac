@@ -15,7 +15,14 @@ use almanac::Event;
 
 fn main() {
     let mut args = env::args().skip(1);
-    let (first, last) = period(&args.next().unwrap());
+    let period_arg = match args.next() {
+        Some(arg) => arg,
+        None => {
+            println!("Usage: almanac [day|week|month] ics [ics ...]");
+            return;
+        }
+    };
+    let (first, last) = period(&period_arg);
 
     let calendars: Vec<_> = args.map(|arg| ics_calendar(&arg)).collect();
     let events = calendars
