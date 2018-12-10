@@ -12,19 +12,27 @@ use almanac::Calendar;
 use almanac::Date;
 use almanac::Duration;
 use almanac::Event;
+use almanac::Config;
 
 fn main() {
     let mut args = env::args().skip(1);
     let period_arg = match args.next() {
         Some(arg) => arg,
         None => {
-            println!("Usage: almanac [day|week|month] ics [ics ...]");
+            println!("Usage: almanac day|week|month [ical ...]");
             return;
         }
     };
     let (first, last) = period(&period_arg);
 
-    let calendars: Vec<_> = args.map(|arg| ics_calendar(&arg)).collect();
+    let mut calendars: Vec<_> = args.map(|arg| ics_calendar(&arg)).collect();
+    if calendars.is_empty() {
+        let conf = Config::parse().unwrap();
+        for cal in &conf.cals {
+            calendars.push(ics_calendar(cal))
+        }
+    }
+
     let events = calendars
         .iter()
         .map(|c| c.iter())
