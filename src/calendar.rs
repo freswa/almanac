@@ -58,7 +58,7 @@ impl Calendar {
             }
         }
 
-        single.sort_by_key(|k| k.start);
+        single.sort();
         Ok(Calendar { single, periodic })
     }
 

@@ -9,7 +9,7 @@ use chrono::offset::Utc;
 use chrono_tz::{Tz, UTC};
 
 
-#[derive(Debug, Copy, Clone, PartialEq, PartialOrd, Eq)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum Date {
     Time(chrono::DateTime<Tz>),
     AllDay(chrono::Date<Tz>),
@@ -106,6 +106,12 @@ impl Ord for Date {
                 }
             }
         }
+    }
+}
+
+impl PartialOrd for Date {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
     }
 }
 

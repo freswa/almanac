@@ -8,7 +8,7 @@ use date::Date;
 use errors::EventError;
 
 
-#[derive(Debug, Clone, PartialEq, PartialOrd, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Event {
     pub start: Date,
     pub end: End,
@@ -79,6 +79,12 @@ impl Ord for Event {
         } else {
             ord
         }
+    }
+}
+
+impl PartialOrd for Event {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
     }
 }
 
