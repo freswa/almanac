@@ -11,10 +11,10 @@ use almanac::Date;
 use almanac::Duration;
 
 fn main() {
-    let first = Date::now();
-    let last = first + Duration::days(7);
+    let mut args = env::args().skip(1);
+    let (first, last) = period(&args.next().unwrap());
 
-    let calendars: Vec<_> = env::args().skip(1).map(|arg| ics_calendar(&arg)).collect();
+    let calendars: Vec<_> = args.map(|arg| ics_calendar(&arg)).collect();
     let events = calendars
         .iter()
         .map(|c| c.iter())
@@ -25,6 +25,18 @@ fn main() {
     for event in events {
         println!("{}", event);
     }
+}
+
+fn period(arg: &str) -> (Date, Date) {
+    let days = match arg {
+        "day" => 1,
+        "week" => 7,
+        "month" => 30,
+        _ => panic!("Invalid time frame, try: day, week or month"),
+    };
+    let first = Date::now();
+    let last = first + Duration::days(days);
+    (first, last)
 }
 
 fn ics_calendar(file_path: &str) -> Calendar {
