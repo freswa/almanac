@@ -4,7 +4,7 @@ use std::ops::Add;
 use errors::EventError;
 
 use chrono;
-use chrono::{TimeZone, Duration, Datelike};
+use chrono::{TimeZone, Duration, Datelike, Local};
 use chrono::offset::Utc;
 use chrono_tz::{Tz, UTC};
 
@@ -63,7 +63,7 @@ impl Date {
 
     pub fn format(&self, fmt: &str) -> String {
         match *self {
-            Date::Time(t) => t.format(fmt).to_string(),
+            Date::Time(t) => t.with_timezone(&Local).format(fmt).to_string(),
             Date::AllDay(d) => d.format(fmt).to_string(),
         }
     }
