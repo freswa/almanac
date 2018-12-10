@@ -24,32 +24,7 @@ fn main() {
         .kmerge()
         .skip_while(|e| e.end_date() < first)
         .take_while(|e| e.start <= last);
-
-    let mut day = Date::new();
-    let mut unfinish = vec![];
-    for event in events {
-        if !day.same_day(&event.start) {
-            if !unfinish.is_empty() {
-                while !day.same_day(&event.start) {
-                    day = day + Duration::days(1);
-                    print_day(day);
-                    for (i, event) in unfinish.clone().iter().enumerate() {
-                        print_event(event);
-                        if event.end_date() <= day + Duration::days(1) {
-                            unfinish.remove(i);
-                        }
-                    }
-                }
-            } else {
-                day = event.start.clone();
-                print_day(day);
-            }
-        }
-        print_event(&event);
-        if event.end_date() > event.start + Duration::days(1) {
-            unfinish.push(event);
-        }
-    }
+    print_events(events)
 }
 
 fn period(arg: &str) -> (Date, Date) {
@@ -68,6 +43,47 @@ fn ics_calendar(file_path: &str) -> Calendar {
     let file = File::open(file_path).unwrap();
     let buf = BufReader::new(file);
     Calendar::parse(buf).unwrap()
+}
+
+fn print_events(events: impl Iterator<Item = Event>) {
+    let mut day = Date::new();
+    let mut unfinish = vec![];
+
+    for event in events {
+        if !day.same_day(&event.start) {
+            if !unfinish.is_empty() {
+                while !day.same_day(&event.start) {
+                    day = day + Duration::days(1);
+                    print_day(day);
+                    for (i, event) in unfinish.clone().iter().enumerate() {
+                        print_event(event);
+                        if event.end_date() <= day + Duration::days(1) {
+                            unfinish.remove(i);
+                        }
+                    }
+                }
+            } else {
+                day = event.start.clone();
+                print_day(day);
+            }
+        }
+
+        print_event(&event);
+        if event.end_date() > event.start + Duration::days(1) {
+            unfinish.push(event);
+        }
+    }
+
+    while !unfinish.is_empty() {
+        day = day + Duration::days(1);
+        print_day(day);
+        for (i, event) in unfinish.clone().iter().enumerate() {
+            print_event(event);
+            if event.end_date() <= day + Duration::days(1) {
+                unfinish.remove(i);
+            }
+        }
+    }
 }
 
 fn print_day(date: Date) {
