@@ -99,6 +99,7 @@ fn print_events(events: impl Iterator<Item = Event>) {
             }
         }
     }
+    println!("");
 }
 
 fn print_day(date: Date) {
