@@ -129,6 +129,7 @@ fn print_event(event: &Event) {
     );
 
     if !event.description.is_empty() {
-        println!("    {} {}", " ".repeat(11), event.description.cyan());
+        let description = str::replace(&event.description, "\\n", &format!("\n{}", " ".repeat(16)));
+        println!("{}{}", " ".repeat(16), description.cyan());
     }
 }
