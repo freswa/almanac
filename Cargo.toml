@@ -1,6 +1,6 @@
 [package]
 name = "almanac"
-version = "0.2.2"
+version = "0.2.3"
 authors = ["meskio <meskio@sindominio.net>"]
 license = "GPL-3.0-or-later"
 description = "Display calendar .ics in command line"
