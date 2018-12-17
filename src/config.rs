@@ -10,9 +10,17 @@ const CONFIG_NAME: &str = "almanac.toml";
 #[derive(Deserialize)]
 pub struct Config {
     pub cals: Vec<String>,
+    pub period: String,
 }
 
 impl Config {
+    pub fn new() -> Config {
+        Config {
+            cals: vec![],
+            period: "".to_string(),
+        }
+    }
+
     pub fn parse() -> Result<Config, ConfigError> {
         let config_path = match dirs::config_dir() {
             Some(path) => path,

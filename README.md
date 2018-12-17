@@ -28,4 +28,7 @@ The format is:
 ```
 # a list of icals to be used if none is provided to the program
 cals = ["/home/foo/mycal.ics", "/tmp/anothercal.ics"]
+
+# default period to display
+period = "day"
 ```

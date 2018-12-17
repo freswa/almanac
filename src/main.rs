@@ -15,19 +15,23 @@ use almanac::Event;
 use almanac::Config;
 
 fn main() {
+    let conf = Config::parse().unwrap_or(Config::new());
     let mut args = env::args().skip(1);
     let period_arg = match args.next() {
         Some(arg) => arg,
         None => {
-            println!("Usage: almanac day|week|month [ical ...]");
-            return;
+            if conf.period.is_empty() {
+                println!("Usage: almanac day|week|month [ical ...]");
+                return;
+            } else {
+                conf.period
+            }
         }
     };
     let (first, last) = period(&period_arg);
 
     let mut calendars: Vec<_> = args.map(|arg| ics_calendar(&arg)).collect();
     if calendars.is_empty() {
-        let conf = Config::parse().unwrap();
         for cal in &conf.cals {
             calendars.push(ics_calendar(cal))
         }
