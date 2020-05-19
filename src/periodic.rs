@@ -1,7 +1,8 @@
 use std::fmt;
 use std::str::FromStr;
+use std::collections::HashSet;
 
-use chrono::Duration;
+use chrono::{Duration, Weekday};
 
 use date::Date;
 use event::{Event, End};
@@ -14,6 +15,8 @@ pub struct Periodic {
     pub interval: i64,
     pub count: Option<i64>,
     pub until: Option<Date>,
+    pub byday: Option<HashSet<Weekday>>,
+    pub wkst: Weekday,
 }
 
 #[derive(Debug)]
@@ -35,6 +38,8 @@ impl Periodic {
             interval: 1,
             count: None,
             until: None,
+            byday: None,
+            wkst: Weekday::Mon,
         }
     }
 
@@ -44,6 +49,8 @@ impl Periodic {
             "INTERVAL" => self.interval = value.parse()?,
             "COUNT" => self.count = Some(value.parse()?),
             "UNTIL" => self.until = Some(Date::parse(&value, "")?),
+            "BYDAY" => self.byday = Some(parse_byday(value)?),
+            "WKST" => self.wkst = parse_weekday(value)?,
             _ => (),
         }
         Ok(())
@@ -82,11 +89,56 @@ impl<'a> Iterator for Iter<'a> {
         event.start = self.start;
         event.end = End::Date(self.end);
 
+        let duration = self.next_duration(self.start);
+        self.start = self.start + duration;
+        self.end = self.end + duration;
         self.count += 1;
-        self.start = p.freq.next_date(self.start, p.interval);
-        self.end = p.freq.next_date(self.end, p.interval);
 
         Some(event)
+    }
+}
+
+impl<'a> Iter<'a> {
+    fn next_duration(&self, date: Date) -> Duration {
+        let p = self.periodic;
+        match p.freq {
+            Freq::Secondly => Duration::seconds(p.interval),
+            Freq::Minutely => Duration::minutes(p.interval),
+            Freq::Hourly => Duration::hours(p.interval),
+            Freq::Daily => Duration::days(p.interval),
+            Freq::Weekly => {
+                match &p.byday {
+                    None => Duration::weeks(p.interval),
+                    Some(byday) => {
+                        let mut weekday = date.weekday().succ();
+                        let mut days = 1;
+                        if weekday == p.wkst {
+                            days += 7 * (p.interval - 1);
+                        }
+                        while !byday.contains(&weekday) {
+                            weekday = weekday.succ();
+                            days += 1;
+                            if weekday == p.wkst {
+                                days += 7 * (p.interval - 1);
+                            }
+                        }
+                        Duration::days(days)
+                    }
+                }
+            }
+            Freq::Monthly => {
+                let new_date = if date.month() == 12 {
+                    date.with_month(1)
+                        .unwrap()
+                        .with_year(date.year() + 1)
+                        .unwrap()
+                } else {
+                    date.with_month(date.month() + 1).unwrap()
+                };
+                new_date - date
+            }
+            Freq::Yearly => date.with_year(date.year() + 1).unwrap() - date,
+        }
     }
 }
 
@@ -98,28 +150,6 @@ impl fmt::Display for Periodic {
         }
         write!(f, ": {}", self.event)?;
         Ok(())
-    }
-}
-
-impl Freq {
-    pub fn next_date(&self, date: Date, count: i64) -> Date {
-        match self {
-            Freq::Secondly => date + Duration::seconds(count),
-            Freq::Minutely => date + Duration::minutes(count),
-            Freq::Hourly => date + Duration::hours(count),
-            Freq::Daily => date + Duration::days(count),
-            Freq::Weekly => date + Duration::weeks(count),
-            Freq::Monthly => {
-                let month = date.month();
-                if month == 12 {
-                    let date = date.with_month(1).unwrap();
-                    date.with_year(date.year() + 1).unwrap()
-                } else {
-                    date.with_month(month + 1).unwrap()
-                }
-            }
-            Freq::Yearly => date.with_year(date.year() + 1).unwrap(),
-        }
     }
 }
 
@@ -137,5 +167,26 @@ impl FromStr for Freq {
             "YEARLY" => Ok(Freq::Yearly),
             _ => Err(EventError::FreqError),
         }
+    }
+}
+
+fn parse_byday(s: &str) -> Result<HashSet<Weekday>, EventError> {
+    let mut byday = HashSet::new();
+    for v in s.split(",") {
+        byday.insert(parse_weekday(v)?);
+    }
+    Ok(byday)
+}
+
+fn parse_weekday(s: &str) -> Result<Weekday, EventError> {
+    match s {
+        "MO" => Ok(Weekday::Mon),
+        "TU" => Ok(Weekday::Tue),
+        "WE" => Ok(Weekday::Wed),
+        "TH" => Ok(Weekday::Thu),
+        "FR" => Ok(Weekday::Fri),
+        "SA" => Ok(Weekday::Sat),
+        "SU" => Ok(Weekday::Sun),
+        _ => Err(EventError::BydayError),
     }
 }

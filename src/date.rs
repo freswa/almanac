@@ -1,10 +1,10 @@
 use std::cmp::{Ordering, Ord};
-use std::ops::Add;
+use std::ops::{Add, Sub};
 
 use errors::EventError;
 
 use chrono;
-use chrono::{TimeZone, Duration, Datelike, Local};
+use chrono::{TimeZone, Duration, Datelike, Local, Weekday};
 use chrono::offset::Utc;
 use chrono_tz::{Tz, UTC};
 
@@ -79,6 +79,13 @@ impl Date {
         }
     }
 
+    pub fn weekday(&self) -> Weekday {
+        match *self {
+            Date::Time(t) => t.weekday(),
+            Date::AllDay(d) => d.weekday(),
+        }
+    }
+
     pub fn month(&self) -> u32 {
         match *self {
             Date::Time(t) => t.month(),
@@ -140,6 +147,27 @@ impl Add<Duration> for Date {
         match self {
             Date::Time(d) => Date::Time(d + other),
             Date::AllDay(d) => Date::AllDay(d + other),
+        }
+    }
+}
+
+impl Sub<Date> for Date {
+    type Output = Duration;
+
+    fn sub(self, other: Self) -> Duration {
+        match self {
+            Date::Time(t1) => {
+                match other {
+                    Date::Time(t2) => t1 - t2,
+                    Date::AllDay(d) => t1.date() - d,
+                }
+            }
+            Date::AllDay(d1) => {
+                match other {
+                    Date::Time(t) => d1 - t.date(),
+                    Date::AllDay(d2) => d1 - d2,
+                }
+            }
         }
     }
 }

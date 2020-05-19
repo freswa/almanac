@@ -9,6 +9,7 @@ pub enum EventError {
     IntError(ParseIntError),
     StatusError,
     FreqError,
+    BydayError,
 }
 
 impl From<parser::errors::Error> for EventError {
