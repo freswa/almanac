@@ -66,7 +66,7 @@ fn ics_calendar(file_path: &str) -> Calendar {
 
 fn print_events(events: impl Iterator<Item = Event>) {
     let mut day = Date::new();
-    let mut unfinish = vec![];
+    let mut unfinish: Vec<Event> = vec![];
 
     for event in events {
         if !day.same_day(&event.start) {
@@ -75,9 +75,11 @@ fn print_events(events: impl Iterator<Item = Event>) {
                     day = day + Duration::days(1);
                     print_day(day);
                     for (i, event) in unfinish.clone().iter().enumerate() {
-                        print_event(event);
                         if event.end_date() <= day + Duration::days(1) {
                             unfinish.remove(i);
+                            print_event(event, true, false);
+                        } else {
+                            print_event(event, true, true);
                         }
                     }
                 }
@@ -87,9 +89,11 @@ fn print_events(events: impl Iterator<Item = Event>) {
             }
         }
 
-        print_event(&event);
         if event.end_date() > event.start + Duration::days(1) {
+            print_event(&event, false, true);
             unfinish.push(event);
+        } else {
+            print_event(&event, false, false);
         }
     }
 
@@ -97,9 +101,11 @@ fn print_events(events: impl Iterator<Item = Event>) {
         day = day + Duration::days(1);
         print_day(day);
         for (i, event) in unfinish.clone().iter().enumerate() {
-            print_event(event);
             if event.end_date() <= day + Duration::days(1) {
                 unfinish.remove(i);
+                print_event(event, true, false);
+            } else {
+                print_event(event, true, true);
             }
         }
     }
@@ -110,14 +116,22 @@ fn print_day(date: Date) {
     println!("\n{}", date.format("%a %b %e %Y").green().bold())
 }
 
-fn print_event(event: &Event) {
-    let start = match event.start {
-        Date::Time(_) => event.start.format("%R"),
-        Date::AllDay(_) => "-----".to_string(),
+fn print_event(event: &Event, ustart: bool, uend: bool) {
+    let start = if ustart {
+        "-----".to_string()
+    } else {
+        match event.start {
+            Date::Time(_) => event.start.format("%R"),
+            Date::AllDay(_) => "-----".to_string(),
+        }
     };
-    let end = match event.end_date() {
-        Date::Time(_) => event.end_date().format("%R"),
-        Date::AllDay(_) => "-----".to_string(),
+    let end = if uend {
+        "-----".to_string()
+    } else {
+        match event.end_date() {
+            Date::Time(_) => event.end_date().format("%R"),
+            Date::AllDay(_) => "-----".to_string(),
+        }
     };
 
     println!(
