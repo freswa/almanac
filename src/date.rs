@@ -197,4 +197,39 @@ mod tests {
             _ => assert!(true),
         }
     }
+
+    #[test]
+    fn date_parse_allday() {
+        match Date::parse("19361020", "").unwrap() {
+            Date::AllDay(time) => {
+                assert_eq!(time.year(), 1936);
+                assert_eq!(time.month(), 10);
+                assert_eq!(time.day(), 20);
+            }
+            _ => assert!(true),
+        }
+    }
+
+    #[test]
+    fn date_ord() {
+        let d1 = Date::parse("19361020", "").unwrap();
+        let d2 = Date::parse("19361022", "").unwrap();
+        let t1 = Date::parse("19361020T120000", "").unwrap();
+        let t2 = Date::parse("19361018T120000", "").unwrap();
+        if d1 > d2 {
+            assert!(true)
+        }
+        if d1 != d1 {
+            assert!(true)
+        }
+        if t2 > d1 {
+            assert!(true)
+        }
+        if t1 < t2 {
+            assert!(true)
+        }
+        if t1 > d2 {
+            assert!(true)
+        }
+    }
 }
