@@ -1,6 +1,6 @@
 [package]
 name = "almanac"
-version = "0.2.3"
+version = "0.3.0"
 authors = ["meskio <meskio@sindominio.net>"]
 license = "GPL-3.0-or-later"
 description = "Display calendar .ics in command line"
@@ -13,14 +13,14 @@ keywords = ["calendar", "ics", "ical", "terminal", "console"]
 [dependencies]
 chrono = "0.4"
 chrono-tz = "0.5"
-itertools = "0.7"
-colored = "1.6"
-toml = "0.4"
+itertools = "0.9"
+colored = "1.9"
+toml = "0.5"
 serde = "1.0"
 serde_derive = "1.0"
-dirs = "1.0"
+dirs = "2.0"
 
 [dependencies.ical]
-version = "0.5.*"
+version = "0.6.*"
 default-features = false
 features = ["ical"]

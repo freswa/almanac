@@ -1,19 +1,19 @@
 use std::io;
 use std::num::ParseIntError;
-use ical::parser;
+use ical::parser::ParserError;
 use toml;
 
 #[derive(Debug)]
 pub enum EventError {
-    IcalError(parser::errors::Error),
+    IcalError(ParserError),
     IntError(ParseIntError),
     StatusError,
     FreqError,
     BydayError,
 }
 
-impl From<parser::errors::Error> for EventError {
-    fn from(err: parser::errors::Error) -> EventError {
+impl From<ParserError> for EventError {
+    fn from(err: ParserError) -> EventError {
         EventError::IcalError(err)
     }
 }
