@@ -109,7 +109,7 @@ fn duration(value: &str) -> Result<Duration, EventError> {
     let mut acc = "".to_string();
     for c in value.chars() {
         match c {
-            '0'...'9' => acc.push(c),
+            '0'..='9' => acc.push(c),
             '-' => duration = -duration,
             'W' | 'H' | 'M' | 'S' | 'D' => {
                 let count = acc.parse()?;
@@ -127,5 +127,5 @@ fn duration(value: &str) -> Result<Duration, EventError> {
             _ => (),
         }
     }
-    Ok(Duration::weeks(1))
+    Ok(duration)
 }
