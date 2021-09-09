@@ -95,7 +95,7 @@ impl FromStr for Status {
         match s {
             "CONFIRMED" => Ok(Status::Confirmed),
             "TENTATIVE" => Ok(Status::Tentative),
-            "CANCELED" => Ok(Status::Canceled),
+            "CANCELLED" => Ok(Status::Canceled),
             _ => Err(EventError::StatusError),
         }
     }
