@@ -1,12 +1,14 @@
 use std::fmt;
 use std::str::FromStr;
-use std::collections::HashSet;
+use std::collections::HashMap;
 
 use chrono::{Duration, Weekday};
 
 use date::Date;
 use event::{Event, End};
 use errors::EventError;
+
+pub type Byday = HashMap<Weekday, Vec<i32>>;
 
 #[derive(Debug)]
 pub struct Periodic {
@@ -15,7 +17,7 @@ pub struct Periodic {
     pub interval: i64,
     pub count: Option<i64>,
     pub until: Option<Date>,
-    pub byday: Option<HashSet<Weekday>>,
+    pub byday: Option<Byday>,
     pub wkst: Weekday,
 }
 
@@ -115,7 +117,7 @@ impl<'a> Iter<'a> {
                         if weekday == p.wkst {
                             days += 7 * (p.interval - 1);
                         }
-                        while !byday.contains(&weekday) {
+                        while !byday.contains_key(&weekday) {
                             weekday = weekday.succ();
                             days += 1;
                             if weekday == p.wkst {
@@ -127,6 +129,7 @@ impl<'a> Iter<'a> {
                 }
             }
             Freq::Monthly => {
+                // TODO: byday...
                 let new_date = if date.month() == 12 {
                     date.with_month(1)
                         .unwrap()
@@ -137,6 +140,7 @@ impl<'a> Iter<'a> {
                 };
                 new_date - date
             }
+            // TODO: byday...
             Freq::Yearly => date.with_year(date.year() + 1).unwrap() - date,
         }
     }
@@ -170,10 +174,21 @@ impl FromStr for Freq {
     }
 }
 
-fn parse_byday(s: &str) -> Result<HashSet<Weekday>, EventError> {
-    let mut byday = HashSet::new();
+fn parse_byday(s: &str) -> Result<Byday, EventError> {
+    let mut byday = Byday::new();
     for v in s.split(",") {
-        byday.insert(parse_weekday(v)?);
+        let weekday = parse_weekday(&v[v.len() - 2..])?;
+        let occurrence = if v.len() > 2 {
+            v[..v.len() - 2].parse()?
+        } else {
+            0
+        };
+        match byday.get_mut(&weekday) {
+            Some(occurrences) => occurrences.push(occurrence),
+            None => {
+                byday.insert(weekday, vec![occurrence]);
+            }
+        };
     }
     Ok(byday)
 }
