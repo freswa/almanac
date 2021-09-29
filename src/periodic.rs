@@ -19,6 +19,7 @@ pub struct Periodic {
     pub count: Option<i64>,
     pub until: Option<Date>,
     pub byday: Option<Byday>,
+    pub bysetpos: i32,
     pub wkst: Weekday,
 }
 
@@ -42,6 +43,7 @@ impl Periodic {
             count: None,
             until: None,
             byday: None,
+            bysetpos: 0,
             wkst: Weekday::Mon,
         }
     }
@@ -53,6 +55,7 @@ impl Periodic {
             "COUNT" => self.count = Some(value.parse()?),
             "UNTIL" => self.until = Some(Date::parse(&value, "")?),
             "BYDAY" => self.byday = Some(parse_byday(value)?),
+            "BYSETPOS" => self.bysetpos = value.parse()?,
             "WKST" => self.wkst = parse_weekday(value)?,
             _ => (),
         }
@@ -134,6 +137,7 @@ impl<'a> Iter<'a> {
                     Some(byday) => {
                         let mut next = date;
                         if p.interval > 1 {
+                            next = next.with_day(1).unwrap();
                             for _ in 1..p.interval {
                                 next = next.add(Duration::days(next.days_in_month().into()));
                             }
@@ -144,7 +148,9 @@ impl<'a> Iter<'a> {
 
                             match byday.get(&next.weekday()) {
                                 Some(occurrences) =>
-                                    if occurrences.contains(&0) || occurrences.contains(&week) ||occurrences.contains(&neg_week) {
+                                    if p.bysetpos == week || p.bysetpos == neg_week
+                                            || occurrences.contains(&0)
+                                            || occurrences.contains(&week) || occurrences.contains(&neg_week) {
                                         break;
                                     }
                                 None => {}
