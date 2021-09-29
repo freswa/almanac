@@ -1,5 +1,6 @@
 use std::fmt;
 use std::str::FromStr;
+use std::ops::Add;
 use std::collections::HashMap;
 
 use chrono::{Duration, Weekday};
@@ -129,16 +130,40 @@ impl<'a> Iter<'a> {
                 }
             }
             Freq::Monthly => {
-                // TODO: byday...
-                let new_date = if date.month() == 12 {
-                    date.with_month(1)
-                        .unwrap()
-                        .with_year(date.year() + 1)
-                        .unwrap()
-                } else {
-                    date.with_month(date.month() + 1).unwrap()
-                };
-                new_date - date
+                match &p.byday {
+                    Some(byday) => {
+                        let mut next = date;
+                        if p.interval > 1 {
+                            for _ in 1..p.interval {
+                                next = next.add(Duration::days(next.days_in_month().into()));
+                            }
+                        }
+                        loop {
+                            next = next.add(Duration::days(1));
+                            let (week, neg_week) = next.week_of_month();
+
+                            match byday.get(&next.weekday()) {
+                                Some(occurrences) =>
+                                    if occurrences.contains(&0) || occurrences.contains(&week) ||occurrences.contains(&neg_week) {
+                                        break;
+                                    }
+                                None => {}
+                            };
+                        };
+                        next - date
+                    }
+                    None => {
+                        let new_date = if date.month() == 12 {
+                            date.with_month(1)
+                                .unwrap()
+                                .with_year(date.year() + 1)
+                                .unwrap()
+                        } else {
+                            date.with_month(date.month() + 1).unwrap()
+                        };
+                        new_date - date
+                    }
+                }
             }
             // TODO: byday...
             Freq::Yearly => date.with_year(date.year() + 1).unwrap() - date,

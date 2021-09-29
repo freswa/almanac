@@ -79,6 +79,13 @@ impl Date {
         }
     }
 
+    pub fn with_day(&self, day: u32) -> Option<Date> {
+        Some(match *self {
+            Date::Time(t) => Date::Time(t.with_day(day)?),
+            Date::AllDay(d) => Date::AllDay(d.with_day(day)?),
+        })
+    }
+
     pub fn weekday(&self) -> Weekday {
         match *self {
             Date::Time(t) => t.weekday(),
@@ -100,6 +107,12 @@ impl Date {
         })
     }
 
+    pub fn week_of_month(&self) -> (i32, i32) {
+        let week = ((self.day() - 1) / 7 + 1) as i32;
+        let neg_week = ((self.days_in_month() - self.day()) / 7 + 1) as i32;
+        (week, -neg_week)
+    }
+
     pub fn year(&self) -> i32 {
         match *self {
             Date::Time(t) => t.year(),
@@ -112,6 +125,13 @@ impl Date {
             Date::Time(t) => Date::Time(t.with_year(year)?),
             Date::AllDay(d) => Date::AllDay(d.with_year(year)?),
         })
+    }
+
+    pub fn days_in_month(&self) -> u32 {
+        chrono::NaiveDate::from_ymd_opt(self.year(), self.month() + 1, 1)
+            .unwrap_or(chrono::NaiveDate::from_ymd(self.year() + 1, 1, 1))
+            .pred()
+            .day()
     }
 }
 
