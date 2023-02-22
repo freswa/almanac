@@ -48,14 +48,18 @@ fn main() {
 
 fn period(arg: &str) -> (Date, Date) {
     let days = match arg {
+        "all" => 0,
         "day" => 1,
         "week" => 7,
         "month" => 30,
-        _ => panic!("Invalid time frame, try: day, week or month"),
+        _ => panic!("Invalid time frame, try: all, day, week or month"),
     };
-    let first = Date::now();
-    let last = first + Duration::days(days);
-    (first, last)
+    if days == 0 {
+        (Date::new(), Date::max())
+    } else {
+        let first = Date::now();
+        (first, first + Duration::days(days))
+    }
 }
 
 fn ics_calendar(file_path: &str) -> Calendar {

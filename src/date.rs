@@ -26,6 +26,10 @@ impl Date {
         Date::Time(UTC.from_utc_datetime(&Utc::now().naive_utc()))
     }
 
+    pub fn max() -> Date {
+        Date::Time(UTC.timestamp(9_999_999_999, 0))
+    }
+
     pub fn parse(date_str: &str, time_zone: &str) -> Result<Self, EventError> {
         let absolute_time = date_str.chars().rev().next().unwrap() == 'Z';
         let tz: Tz = if absolute_time {
