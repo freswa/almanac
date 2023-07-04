@@ -7,6 +7,7 @@ extern crate toml;
 
 #[macro_use]
 extern crate serde_derive;
+extern crate windows_timezones;
 
 mod date;
 mod event;

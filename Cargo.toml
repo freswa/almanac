@@ -12,15 +12,12 @@ keywords = ["calendar", "ics", "ical", "terminal", "console"]
 
 [dependencies]
 chrono = "0.4"
-chrono-tz = "0.5"
-itertools = "0.9"
-colored = "1.9"
-toml = "0.5"
+chrono-tz = "0.8.3"
+windows-timezones = { version = "0.2.1", features = ["chrono-tz"] }
+itertools = "0.11.0"
+colored = "2.0.1"
+toml = "0.7.5"
 serde = "1.0"
 serde_derive = "1.0"
-dirs = "2.0"
-
-[dependencies.ical]
-version = "0.6.*"
-default-features = false
-features = ["ical"]
+dirs = "5.0.1"
+ical = { version = "0.8.0", default-features = false, features = ["ical"] }

@@ -1,5 +1,7 @@
 use std::cmp::{Ordering, Ord};
 use std::ops::{Add, Sub};
+use std::slice::Windows;
+use std::str::FromStr;
 
 use errors::EventError;
 
@@ -7,6 +9,7 @@ use chrono;
 use chrono::{TimeZone, Duration, Datelike, Local, Weekday};
 use chrono::offset::Utc;
 use chrono_tz::{Tz, UTC};
+use windows_timezones::WindowsTimezone;
 
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
@@ -30,13 +33,14 @@ impl Date {
         Date::Time(UTC.timestamp(9_999_999_999, 0))
     }
 
+
     pub fn parse(date_str: &str, time_zone: &str) -> Result<Self, EventError> {
         let absolute_time = date_str.chars().rev().next().unwrap() == 'Z';
         let tz: Tz = if absolute_time {
             UTC
         } else {
-            // FIXME: this should not be UTC but local timezone
-            time_zone.parse().unwrap_or(UTC)
+            let win_tz = Into::<chrono_tz::Tz>::into(time_zone.parse().unwrap_or(WindowsTimezone::Utc));
+            time_zone.parse().unwrap_or(win_tz)
         };
 
         let date = match date_str.find("T") {
